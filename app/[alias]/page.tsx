@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import clientPromise from '../../lib/mongo'; // ✅ no aliases, simpler for Vercel
+import clientPromise from '../../lib/mongo'; 
 
 export default async function Page({
   params,
@@ -11,7 +11,7 @@ export default async function Page({
   const entry = await db.collection('shorturls').findOne({ alias: params.alias });
 
   if (!entry) {
-    return <div style={{ padding: '2rem' }}>Alias not found 😢</div>;
+    return <div style={{ padding: '2rem' }}>Alias not found</div>;
   }
 
   redirect(entry.url);
