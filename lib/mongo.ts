@@ -1,31 +1,31 @@
 import { MongoClient } from 'mongodb';
 
-const uri: string = process.env.MONGODB_URI!;
+const uri = process.env.MONGODB_URI!;
 const options = {};
 
 let client: MongoClient;
 let clientPromise: Promise<MongoClient>;
 
-// 👇 Extend the global type for dev use
-declare global {
-    var _mongoClientPromise: Promise<MongoClient> | undefined;
-}
+// Extend NodeJS.GlobalThis cleanly
+type GlobalWithMongo = typeof globalThis & {
+  _mongoClientPromise?: Promise<MongoClient>;
+};
 
-// 🚨 Throw if env is missing
+const globalWithMongo = global as GlobalWithMongo;
+
 if (!process.env.MONGODB_URI) {
-    throw new Error('Please add your Mongo URI to .env.local');
+  throw new Error('Please add your Mongo URI to .env.local');
 }
 
-// ✅ Cache the connection in development to avoid multiple clients
 if (process.env.NODE_ENV === 'development') {
-    if (!global._mongoClientPromise) {
-        client = new MongoClient(uri, options);
-        global._mongoClientPromise = client.connect();
-    }
-    clientPromise = global._mongoClientPromise;
-} else {
+  if (!globalWithMongo._mongoClientPromise) {
     client = new MongoClient(uri, options);
-    clientPromise = client.connect();
+    globalWithMongo._mongoClientPromise = client.connect();
+  }
+  clientPromise = globalWithMongo._mongoClientPromise!;
+} else {
+  client = new MongoClient(uri, options);
+  clientPromise = client.connect();
 }
 
 export default clientPromise;
