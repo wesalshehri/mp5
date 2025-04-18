@@ -1,16 +1,20 @@
-import clientPromise from '../../lib/mongo';
 import { redirect } from 'next/navigation';
+import clientPromise from '@/lib/mongo';
 
-export default async function AliasRedirect({ params }: { params: { alias: string } }) {
-    const client = await clientPromise;
-    const db = client.db('urlshortener');
-    const collection = db.collection('urls');
+type PageProps = {
+  params: {
+    alias: string;
+  };
+};
 
-    const result = await collection.findOne({ alias: params.alias });
+export default async function Page({ params }: PageProps) {
+  const client = await clientPromise;
+  const db = client.db(); // defaults to DB name in your URI
+  const urlEntry = await db.collection('shorturls').findOne({ alias: params.alias });
 
-    if (!result) {
-        return <h1>Alias not found</h1>;
-    }
+  if (!urlEntry) {
+    return <div>Alias not found.</div>;
+  }
 
-    redirect(result.url); // server-side redirect
+  redirect(urlEntry.url);
 }
